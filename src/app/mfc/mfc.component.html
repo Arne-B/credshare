@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="mfc">
+  @for (sector of sectors(); track $index; let sectorNumber = $index) {
+    <div class="sector">
+      <div class="name">Sector #{{ sectorNumber.toString().padStart(2, '0') }}</div>
+        <div class="content">
+        @for (block of sector; track $index; let blockNumber = $index) {
+          <div class="block">
+            <div class="name">Block #{{ (blockNumber + sectorNumber * 4).toString().padStart(2, '0') }}</div>
+            @for (byte of block; track $index; let byteNumber = $index) {
+              <div class="byte" [ngClass]="{'uid': isUidByte(sectorNumber, blockNumber, byteNumber), 'keyA': isKeyAByte(sectorNumber, blockNumber, byteNumber), 'keyB': isKeyBByte(sectorNumber, blockNumber, byteNumber), 'ac': isAcByte(sectorNumber, blockNumber, byteNumber)}">{{ byte.toString(16).toUpperCase().padStart(2, '0') }}</div>
+            }
+          </div>
+        }
+        </div>
+    </div>
+  }
+  </div>
+
+  <div class="info">
+    <qrcode [qrdata]="url()" [width]="256" [margin]="0" [allowEmptyString]="true"></qrcode>
+    <p class="text">
+      <span class="name">Mifare Classic</span> ({{ data().length/1024}}k)<br/>
+      <span class="name">UID:</span> {{ uid() }} <br/>
+      <span class="name">BCC:</span> {{ bcc() }} <br/>
+      <span class="name">SAK:</span> {{ sak() }} <br/>
+      <span class="name">ATQA:</span> {{ atqa() }} <br/>
+    </p>
+    <input type="file" #fileElem accept=".bin" style="display:none" (change)="loadDump($event)" />
+    <button mat-stroked-button (click)="fileElem.click()"><mat-icon>data_object</mat-icon>Load dump</button>
+  </div>
+
+</div>

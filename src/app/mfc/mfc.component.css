@@ -1,0 +1,67 @@
+.container {
+  margin: 1em;
+  display: flex;
+}
+
+.mfc {
+  display: grid;
+  grid-template-columns: min-content;
+  gap: 0.25em;
+}
+
+.sector {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 0.5em;
+  border: 1px solid darkgray;
+  padding: 0.5em;
+}
+
+.sector .content {
+  display: grid;
+  gap: 0.1em;
+}
+
+.block {
+  display: grid;
+  grid-template-columns: max-content repeat(16, 1fr);
+  gap: 0.1em;
+  padding: 0.1em;
+}
+
+.block .name {
+  padding: 0 0.25em;
+}
+
+.byte {
+  border: 1px solid lightgray;
+  text-align: center;
+  padding: 0 1px;
+  align-self: start;
+}
+
+.byte.uid {
+  color: darkred;
+}
+
+.byte.keyA {
+  color: purple;
+}
+
+.byte.ac {
+  color: orange;
+}
+
+.byte.keyB {
+  color: green;
+}
+
+
+
+.info {
+  margin-left: 1em;
+}
+
+.info .text .name {
+  font-weight: bold;
+}
