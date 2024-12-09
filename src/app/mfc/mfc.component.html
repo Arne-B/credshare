@@ -18,16 +18,29 @@
   </div>
 
   <div class="info">
+    <h1>Mifare Classic ({{ data().length/1024}}k)</h1>
+
+    <dl class="details">
+      <dt>UID:</dt>
+      <dd>{{ uid() }}</dd>
+      <dt>BCC:</dt>
+      <dd>{{ bcc() }}</dd>
+      <dt>SAK:</dt>
+      <dd>{{ sak() }}</dd>
+      <dt>ATQA:</dt>
+      <dd>{{ atqa() }}</dd>
+    </dl>
+
+
     <qrcode [qrdata]="url()" [width]="256" [margin]="0" [allowEmptyString]="true"></qrcode>
-    <p class="text">
-      <span class="name">Mifare Classic</span> ({{ data().length/1024}}k)<br/>
-      <span class="name">UID:</span> {{ uid() }} <br/>
-      <span class="name">BCC:</span> {{ bcc() }} <br/>
-      <span class="name">SAK:</span> {{ sak() }} <br/>
-      <span class="name">ATQA:</span> {{ atqa() }} <br/>
-    </p>
-    <input type="file" #fileElem accept=".bin" style="display:none" (change)="loadDump($event)" />
-    <button mat-stroked-button (click)="fileElem.click()"><mat-icon>data_object</mat-icon>Load dump</button>
+
+    <input type="file" #fileElem accept=".bin,.json,.nfc" style="display:none" (change)="loadDump($event)" />
+
+    <div class="action">
+      <button mat-stroked-button (click)="fileElem.click()"><mat-icon>nfc</mat-icon>Load dump</button>
+      <button mat-stroked-button (click)="downloadBin()" [disabled]="data().length <= 0"><mat-icon>download</mat-icon>Download .bin</button>
+    </div>
+
   </div>
 
 </div>
