@@ -192,4 +192,48 @@ export class MfcComponent {
     downloadLink.click();
     URL.revokeObjectURL(fileURL);
   }
+
+  downloadJson() {
+    let json = new MfcJson();
+
+    json.Card = { UID: this.uid(), ATQA: this.atqa(), SAK: this.sak() };
+
+    json.blocks = {};
+    let strBlocks = this.blocks().map( b => b.map(s => s.toString(16).padStart(2, '0')).join('').toUpperCase());
+
+    for(let i = 0; i < strBlocks.length; i++) {
+      json.blocks[i.toString()] = strBlocks[i];
+    }
+
+    json.SectorKeys = {};
+    let secKeys = this.sectors().map( s => s[s.length - 1]); //.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
+console.log(secKeys);
+    for(let i = 0; i < secKeys.length; i++) {
+      console.log(i, secKeys[i]);
+
+      json.SectorKeys[i.toString()] = {
+        KeyA: [...secKeys[i]].splice(0, 6).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
+        KeyB: [...secKeys[i]].splice(10, 6).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
+        AccessConditions: [...secKeys[i]].splice(6, 4).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
+        AccessConditionsText: {
+          block0: 'TODO',
+          block1: 'TODO',
+          block2: 'TODO',
+          block3: 'TODO',
+          UserData: [...secKeys[i]].splice(9, 1).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
+        }
+      };
+    }
+
+    console.log(json);
+
+    const blob = new Blob([JSON.stringify(json, null, 4)], { type: 'text/json' });
+    const fileURL = URL.createObjectURL(blob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = fileURL;
+    downloadLink.download = 'hf-mf-' + this.uid().split(' ').join('') + '-dump.json';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    URL.revokeObjectURL(fileURL);
+  }
 }

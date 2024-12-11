@@ -8,7 +8,7 @@
           <div class="block">
             <div class="name">Block #{{ (blockNumber + sectorNumber * 4).toString().padStart(2, '0') }}</div>
             @for (byte of block; track $index; let byteNumber = $index) {
-              <div class="byte" [ngClass]="{'uid': isUidByte(sectorNumber, blockNumber, byteNumber), 'keyA': isKeyAByte(sectorNumber, blockNumber, byteNumber), 'keyB': isKeyBByte(sectorNumber, blockNumber, byteNumber), 'ac': isAcByte(sectorNumber, blockNumber, byteNumber)}">{{ byte.toString(16).toUpperCase().padStart(2, '0') }}</div>
+              <div class="byte" [contentEditable]="true" [ngClass]="{'uid': isUidByte(sectorNumber, blockNumber, byteNumber), 'keyA': isKeyAByte(sectorNumber, blockNumber, byteNumber), 'keyB': isKeyBByte(sectorNumber, blockNumber, byteNumber), 'ac': isAcByte(sectorNumber, blockNumber, byteNumber)}">{{ byte.toString(16).toUpperCase().padStart(2, '0') }}</div>
             }
           </div>
         }
@@ -39,6 +39,7 @@
     <div class="action">
       <button mat-stroked-button (click)="fileElem.click()"><mat-icon>nfc</mat-icon>Load dump</button>
       <button mat-stroked-button (click)="downloadBin()" [disabled]="data().length <= 0"><mat-icon>download</mat-icon>Download .bin</button>
+      <button mat-stroked-button (click)="downloadJson()" [disabled]="data().length <= 0"><mat-icon>download</mat-icon>Download .json</button>
     </div>
 
   </div>
