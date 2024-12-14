@@ -42,6 +42,7 @@
       <button mat-stroked-button (click)="downloadJson()" [disabled]="data().length <= 0"><mat-icon>download</mat-icon>Download .json</button>
     </div>
 
+    {{ accessConditions() | json }}
   </div>
 
 </div>

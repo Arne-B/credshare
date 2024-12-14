@@ -1,4 +1,4 @@
-import { NgClass } from '@angular/common';
+import { JsonPipe, NgClass } from '@angular/common';
 import { Component, computed, inject, Signal, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QRCodeComponent } from 'angularx-qrcode';
@@ -9,7 +9,7 @@ import { MfcJson } from './MfcJson';
 
 @Component({
   selector: 'app-mfc',
-  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon],
+  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon, JsonPipe],
   templateUrl: './mfc.component.html',
   styleUrl: './mfc.component.css'
 })
@@ -19,6 +19,8 @@ export class MfcComponent {
   public blocks: Signal<number[][]> = computed(() => this.arrayChunks(this.data(), 16));
   public sectors: Signal<number[][][]> = computed(() => this.arrayChunks(this.blocks(), 4));
 
+  public accessConditions: Signal<number[][]> = computed(() => this.sectors().map(s => s.slice(-1)[0]).map(b => b.slice(6, 10)) );
+
   public uid: Signal<string> = computed(() => this.data().length > 4 ? this.data().slice(0, 4).map(b => b.toString(16)).join(' ').toUpperCase() : '');
   public bcc: Signal<string> = computed(() => this.data().length > 5 ? this.data()[4].toString(16).toUpperCase().padStart(2, '0') : '');
   public sak: Signal<string> = computed(() => this.data().length > 6 ? this.data()[5].toString(16).toUpperCase().padStart(2, '0') : '');
@@ -27,9 +29,50 @@ export class MfcComponent {
   public base64 = signal<string>('');
   public url: Signal<string> = computed(() => location.origin + '/mfc#' + this.base64());
 
+  getAcBits(acs: number[], block: number) {
+
+    if(!acs || acs.length < 3) {
+      throw new Error('Acs must have at least 3 bytes.');
+    }
+
+    const byte6: number = acs[0];
+    const byte7: number = acs[1];
+    const byte8: number = acs[2];
+
+    if(block < 0 || block >3) {
+      throw new Error('Only blocks 0-3 are valid.');
+    }
+
+    const c1 = this.isBitSet(byte7, 4 + block);
+    const _c1 = this.isBitSet(byte6, 0 + block);
+
+    const c2 = this.isBitSet(byte8, 0 + block);
+    const _c2 = this.isBitSet(byte6, 4 + block);
+
+    const c3 = this.isBitSet(byte8, 4 + block);
+    const _c3 = this.isBitSet(byte7, 0 + block);
+
+    if( c1 === _c1 || c2 === _c2 || c3 === _c3 ) {
+      throw new Error('Invalid access bits. Complements do not match.');
+    }
+
+    return {block, c1, c2, c3};
+  }
+
+  isBitSet(value: number, bit: number): boolean {
+    return (value & (1 << bit)) > 0;
+  }
+
   private _snackBar = inject(MatSnackBar);
 
   constructor(private route: ActivatedRoute, private router: Router) {
+
+    console.log(this.isBitSet(0x00, 0), this.isBitSet(0x00, 1), this.isBitSet(0x00, 2), this.isBitSet(0x00, 3));
+    console.log(this.isBitSet(0xFF, 0), this.isBitSet(0xFF, 1), this.isBitSet(0xFF, 2), this.isBitSet(0xFF, 3));
+    console.log(this.isBitSet(0x01, 0), this.isBitSet(0x01, 1), this.isBitSet(0x01, 2), this.isBitSet(0x01, 3));
+
+    console.log(this.getAcBits([ 255, 7, 128, 105 ], 0));
+
     this.route.fragment.subscribe(fragment => {
       if (fragment) {
         var dataUrl = "data:application/octet-binary;base64," + fragment;
@@ -206,10 +249,9 @@ export class MfcComponent {
     }
 
     json.SectorKeys = {};
-    let secKeys = this.sectors().map( s => s[s.length - 1]); //.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
-console.log(secKeys);
+    let secKeys = this.sectors().map( s => s[s.length - 1]);
+
     for(let i = 0; i < secKeys.length; i++) {
-      console.log(i, secKeys[i]);
 
       json.SectorKeys[i.toString()] = {
         KeyA: [...secKeys[i]].splice(0, 6).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
