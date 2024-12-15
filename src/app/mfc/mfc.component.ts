@@ -6,6 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MfcJson } from './MfcJson';
+import { AcBits } from './AcBits';
+
 
 @Component({
   selector: 'app-mfc',
@@ -19,7 +21,8 @@ export class MfcComponent {
   public blocks: Signal<number[][]> = computed(() => this.arrayChunks(this.data(), 16));
   public sectors: Signal<number[][][]> = computed(() => this.arrayChunks(this.blocks(), 4));
 
-  public accessConditions: Signal<number[][]> = computed(() => this.sectors().map(s => s.slice(-1)[0]).map(b => b.slice(6, 10)) );
+  public accessConditions: Signal<number[][]> = computed(() => this.sectors().map(s => s.slice(-1)[0]).map(b => b.slice(6, 10)));
+  public accessConditionsDescription: Signal<string[][]> = computed(() => this.accessConditions().map((a) => [this.getAcBits(a, 0).description(), this.getAcBits(a, 1).description(), this.getAcBits(a, 2).description(), this.getAcBits(a, 3).description()]));
 
   public uid: Signal<string> = computed(() => this.data().length > 4 ? this.data().slice(0, 4).map(b => b.toString(16)).join(' ').toUpperCase() : '');
   public bcc: Signal<string> = computed(() => this.data().length > 5 ? this.data()[4].toString(16).toUpperCase().padStart(2, '0') : '');
@@ -29,8 +32,11 @@ export class MfcComponent {
   public base64 = signal<string>('');
   public url: Signal<string> = computed(() => location.origin + '/mfc#' + this.base64());
 
-  getAcBits(acs: number[], block: number) {
 
+
+  getAcBits(acs: number[], block: number): AcBits {
+
+    console.log(acs);
     if(!acs || acs.length < 3) {
       throw new Error('Acs must have at least 3 bytes.');
     }
@@ -56,7 +62,7 @@ export class MfcComponent {
       throw new Error('Invalid access bits. Complements do not match.');
     }
 
-    return {block, c1, c2, c3};
+    return new AcBits(block, c1, c2, c3);
   }
 
   isBitSet(value: number, bit: number): boolean {
