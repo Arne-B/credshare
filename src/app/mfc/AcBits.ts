@@ -20,7 +20,7 @@ export class AcBits {
       case b.matches({ c1: false, c2: false, c3: false }):
         return 'read AB; write AB; increment AB; decrement transfer restore AB';
       case b.matches({ c1: false, c2: true, c3: false }):
-        return 'read AB;';
+        return 'read AB';
       case b.matches({ c1: true, c2: false, c3: false }):
         return 'read AB; write B';
       case b.matches({ c1: true, c2: true, c3: false }):
@@ -72,4 +72,42 @@ export class AcBits {
 
     return 'Invalid block!';
   };
+
+  public static createAll(acs: number[]): AcBits[] {
+    return [0, 1, 2, 3].map(b => AcBits.create(acs, b));
+  }
+
+  public static create(acs: number[], block: number): AcBits {
+
+    if(!acs || acs.length < 3) {
+      throw new Error('Acs must have at least 3 bytes.');
+    }
+
+    const byte6: number = acs[0];
+    const byte7: number = acs[1];
+    const byte8: number = acs[2];
+
+    if(block < 0 || block >3) {
+      throw new Error('Only blocks 0-3 are valid.');
+    }
+
+    const c1 = AcBits.isBitSet(byte7, 4 + block);
+    const _c1 = AcBits.isBitSet(byte6, 0 + block);
+
+    const c2 = AcBits.isBitSet(byte8, 0 + block);
+    const _c2 = AcBits.isBitSet(byte6, 4 + block);
+
+    const c3 = AcBits.isBitSet(byte8, 4 + block);
+    const _c3 = AcBits.isBitSet(byte7, 0 + block);
+
+    if( c1 === _c1 || c2 === _c2 || c3 === _c3 ) {
+      throw new Error('Invalid access bits. Complements do not match.');
+    }
+
+    return new AcBits(block, c1, c2, c3);
+  }
+
+  private static isBitSet(value: number, bit: number): boolean {
+    return (value & (1 << bit)) > 0;
+  }
 }

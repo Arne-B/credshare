@@ -6,7 +6,7 @@
         <div class="content">
         @for (block of sector; track $index; let blockNumber = $index) {
           <div class="block">
-            <div class="name">Block #{{ (blockNumber + sectorNumber * 4).toString().padStart(2, '0') }}</div>
+            <div class="name" [matTooltip]="accessConditionsDescription()[sectorNumber][blockNumber]" >Block #{{ (blockNumber + sectorNumber * 4).toString().padStart(2, '0') }}</div>
             @for (byte of block; track $index; let byteNumber = $index) {
               <div class="byte" [contentEditable]="true" [ngClass]="{'uid': isUidByte(sectorNumber, blockNumber, byteNumber), 'keyA': isKeyAByte(sectorNumber, blockNumber, byteNumber), 'keyB': isKeyBByte(sectorNumber, blockNumber, byteNumber), 'ac': isAcByte(sectorNumber, blockNumber, byteNumber)}">{{ byte.toString(16).toUpperCase().padStart(2, '0') }}</div>
             }
@@ -42,9 +42,6 @@
       <button mat-stroked-button (click)="downloadJson()" [disabled]="data().length <= 0"><mat-icon>download</mat-icon>Download .json</button>
     </div>
 
-    @for(t of accessConditionsDescription(); track $index;) {
-      {{ t | json }}<br/>
-    }
   </div>
 
 </div>

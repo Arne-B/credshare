@@ -12,7 +12,7 @@ type MfcSectorKey = {
   KeyA: string;
   KeyB: string;
   AccessConditions: string;
-  AccessConditionsText: { block0: string; block1: string; block2: string; block3: string; UserData: string; };
+  AccessConditionsText: { [key: string]: string; UserData: string; };
 };
 
 type MfcSectorKeys = {

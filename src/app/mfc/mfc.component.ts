@@ -5,13 +5,14 @@ import { QRCodeComponent } from 'angularx-qrcode';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip'
 import { MfcJson } from './MfcJson';
 import { AcBits } from './AcBits';
 
 
 @Component({
   selector: 'app-mfc',
-  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon, JsonPipe],
+  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon, JsonPipe, MatTooltipModule],
   templateUrl: './mfc.component.html',
   styleUrl: './mfc.component.css'
 })
@@ -22,7 +23,7 @@ export class MfcComponent {
   public sectors: Signal<number[][][]> = computed(() => this.arrayChunks(this.blocks(), 4));
 
   public accessConditions: Signal<number[][]> = computed(() => this.sectors().map(s => s.slice(-1)[0]).map(b => b.slice(6, 10)));
-  public accessConditionsDescription: Signal<string[][]> = computed(() => this.accessConditions().map((a) => [this.getAcBits(a, 0).description(), this.getAcBits(a, 1).description(), this.getAcBits(a, 2).description(), this.getAcBits(a, 3).description()]));
+  public accessConditionsDescription: Signal<string[][]> = computed(() => this.accessConditions().map((a) => [...AcBits.createAll(a).map(b => b.description())]));
 
   public uid: Signal<string> = computed(() => this.data().length > 4 ? this.data().slice(0, 4).map(b => b.toString(16)).join(' ').toUpperCase() : '');
   public bcc: Signal<string> = computed(() => this.data().length > 5 ? this.data()[4].toString(16).toUpperCase().padStart(2, '0') : '');
@@ -33,51 +34,9 @@ export class MfcComponent {
   public url: Signal<string> = computed(() => location.origin + '/mfc#' + this.base64());
 
 
-
-  getAcBits(acs: number[], block: number): AcBits {
-
-    console.log(acs);
-    if(!acs || acs.length < 3) {
-      throw new Error('Acs must have at least 3 bytes.');
-    }
-
-    const byte6: number = acs[0];
-    const byte7: number = acs[1];
-    const byte8: number = acs[2];
-
-    if(block < 0 || block >3) {
-      throw new Error('Only blocks 0-3 are valid.');
-    }
-
-    const c1 = this.isBitSet(byte7, 4 + block);
-    const _c1 = this.isBitSet(byte6, 0 + block);
-
-    const c2 = this.isBitSet(byte8, 0 + block);
-    const _c2 = this.isBitSet(byte6, 4 + block);
-
-    const c3 = this.isBitSet(byte8, 4 + block);
-    const _c3 = this.isBitSet(byte7, 0 + block);
-
-    if( c1 === _c1 || c2 === _c2 || c3 === _c3 ) {
-      throw new Error('Invalid access bits. Complements do not match.');
-    }
-
-    return new AcBits(block, c1, c2, c3);
-  }
-
-  isBitSet(value: number, bit: number): boolean {
-    return (value & (1 << bit)) > 0;
-  }
-
   private _snackBar = inject(MatSnackBar);
 
   constructor(private route: ActivatedRoute, private router: Router) {
-
-    console.log(this.isBitSet(0x00, 0), this.isBitSet(0x00, 1), this.isBitSet(0x00, 2), this.isBitSet(0x00, 3));
-    console.log(this.isBitSet(0xFF, 0), this.isBitSet(0xFF, 1), this.isBitSet(0xFF, 2), this.isBitSet(0xFF, 3));
-    console.log(this.isBitSet(0x01, 0), this.isBitSet(0x01, 1), this.isBitSet(0x01, 2), this.isBitSet(0x01, 3));
-
-    console.log(this.getAcBits([ 255, 7, 128, 105 ], 0));
 
     this.route.fragment.subscribe(fragment => {
       if (fragment) {
@@ -264,10 +223,10 @@ export class MfcComponent {
         KeyB: [...secKeys[i]].splice(10, 6).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
         AccessConditions: [...secKeys[i]].splice(6, 4).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase(),
         AccessConditionsText: {
-          block0: 'TODO',
-          block1: 'TODO',
-          block2: 'TODO',
-          block3: 'TODO',
+          ['block' + (0 + i * 4).toString()] : this.accessConditionsDescription()[i][0],
+          ['block' + (1 + i * 4).toString()]: this.accessConditionsDescription()[i][1],
+          ['block' + (2 + i * 4).toString()]: this.accessConditionsDescription()[i][2],
+          ['block' + (3 + i * 4).toString()]: this.accessConditionsDescription()[i][3],
           UserData: [...secKeys[i]].splice(9, 1).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase()
         }
       };
