@@ -1,4 +1,4 @@
-import { JsonPipe, NgClass } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, computed, inject, Signal, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { QRCodeComponent } from 'angularx-qrcode';
@@ -12,7 +12,7 @@ import { AcBits } from './AcBits';
 
 @Component({
   selector: 'app-mfc',
-  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon, JsonPipe, MatTooltipModule],
+  imports: [NgClass, QRCodeComponent, MatButtonModule, MatIcon, MatTooltipModule],
   templateUrl: './mfc.component.html',
   styleUrl: './mfc.component.css'
 })
